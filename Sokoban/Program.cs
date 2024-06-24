@@ -28,8 +28,10 @@ namespace Sokoban
         static int[] goalX = new int[] { 11, 12, 13 };
         static int[] goalY = new int[] { 8, 8, 8 };
 
-        const int MIN_X = 0, MIN_Y = 0;
+        const int MIN_X = 0, MIN_Y = 1;
         const int MAX_X = 119, MAX_Y = 29;
+        
+        static int totalCoin = 0;
 
         delegate bool PositionChecker(int x, int y);
 
@@ -42,6 +44,7 @@ namespace Sokoban
                 Console.Clear();
 
                 DrawGameObjects();
+                PrintTotalCoin();
 
                 ConsoleKey key = GetKey();
                 Direction movingDirection = DecideDirection(key);
@@ -187,6 +190,12 @@ namespace Sokoban
                         boxX[i] = boxNextX;
                         boxY[i] = boxNextY;
                     }
+                    else
+                    {
+                        int totalWeight = GetTotalWeight(itemTable);
+                        Item randomItem = GetRandomItem(totalWeight, itemTable);
+                        totalCoin += randomItem.Value;
+                    }
                 }
             }
         }
@@ -208,6 +217,12 @@ namespace Sokoban
             return false;
         }
 
+        static void PrintTotalCoin()
+        {
+            Console.SetCursorPosition(0, 0);
+            Console.Write($"현재 코인: {totalCoin}원");
+        }
+
         static bool AreAllBoxesOnGoals()
         {
             for (int i = 0; i < boxX.Length; i++)
@@ -227,6 +242,53 @@ namespace Sokoban
                 }
             }
             return true;
+        }
+
+        class Item
+        {
+            public int Id;
+            public string Name;
+            public int Weight;
+            public int Value;
+        }
+
+        static Item[] itemTable = new Item[4]
+        {
+            new Item() { Id = 1, Name = "50원", Weight = 1, Value = 50 },
+            new Item() { Id = 2, Name = "25원", Weight = 2, Value = 25 },
+            new Item() { Id = 3, Name = "10원", Weight = 3, Value = 10 },
+            new Item() { Id = 4, Name = "5원", Weight = 4, Value = 5 },
+        };
+
+        static int GetTotalWeight(Item[] itemTable)
+        {
+            int result = 0;
+            for (int itemId = 0; itemId < itemTable.Length; ++itemId)
+            {
+                result += itemTable[itemId].Weight;
+            }
+            return result;
+        }
+
+        static Item GetRandomItem(int totalWeight, Item[] itemTable)
+        {
+            Random random = new Random();
+            int randomNumber = random.Next(1, totalWeight + 1);
+
+            Item selectedItem = null;
+            int weight = 0;
+
+            for (int itemId = 0; itemId < itemTable.Length; ++itemId)
+            {
+                weight += itemTable[itemId].Weight;
+
+                if (randomNumber <= weight)
+                {
+                    selectedItem = itemTable[itemId];
+                    break;
+                }
+            }
+            return selectedItem;
         }
     }
 }
