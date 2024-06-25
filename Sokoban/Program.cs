@@ -15,8 +15,8 @@ namespace Sokoban
     {
         static void Main(string[] args)
         {
-            Game game = new Game();
-            game.Play();
+            Stage stage = new Stage();
+            stage.Play();
         }
     }
 
@@ -90,6 +90,69 @@ namespace Sokoban
         }
     }
 
+    class Stage
+    {
+        Game game;
+
+        static int currStageNumber = 1;
+        const int lastStageNumber = 3;
+
+        public Stage()
+        {
+            game = new Game();
+        }
+
+        public void Play()
+        {
+            while(currStageNumber <= lastStageNumber)
+            {
+                game.LoadStage(currStageNumber);
+                game.Play();
+                PrintStageInfo();
+                MoveNextStage();
+
+                if (IsClearLastStage())
+                {
+                    Console.Clear();
+                    Console.Write("Game Clear");
+                    break;
+                }
+            }
+        }
+
+        void PrintStageInfo()
+        {
+            Console.SetCursorPosition(0, 0);
+            Console.WriteLine($"Stage {currStageNumber}");
+        }
+
+        void MoveNextStage()
+        {
+            if (game.AreAllBoxesOnGoals())
+            {
+                currStageNumber += 1;
+                if (currStageNumber <= lastStageNumber)
+                {
+                    PrintNextStageConsole();
+                }
+            }
+        }
+
+        void PrintNextStageConsole()
+        {
+            Console.Clear();
+        }
+
+        bool IsClearLastStage()
+        {
+            if (currStageNumber > lastStageNumber)
+            {
+                return true;
+            }
+            return false;
+        }
+    }
+
     class Game
     {
         Player player;
@@ -105,13 +168,13 @@ namespace Sokoban
 
         void InitializeGame()
         {
+            // 초기 게임 오브젝트 생성 및 위치 설정
             player = new Player(2, 2, "P");
-
             boxes = new List<Box>
             {
-                new Box(8, 3, "B"),
-                new Box(9, 3, "B"),
-                new Box(10, 3, "B")
+                new Box(8, 4, "B"),
+                new Box(9, 4, "B"),
+                new Box(10, 4, "B")
             };
 
             walls = new List<Wall>
@@ -123,9 +186,9 @@ namespace Sokoban
 
             goals = new List<Goal>
             {
-                new Goal(11, 10, "G"),
-                new Goal(12, 10, "G"),
-                new Goal(13, 10, "G")
+                new Goal(11, 9, "G"),
+                new Goal(12, 9, "G"),
+                new Goal(13, 9, "G")
             };
         }
 
@@ -141,13 +204,10 @@ namespace Sokoban
             while (true)
             {
                 Console.Clear();
-
                 DrawGameObjects();
 
                 if (AreAllBoxesOnGoals())
                 {
-                    Console.Clear();
-                    Console.Write("Game Clear");
                     break;
                 }
 
@@ -245,6 +305,7 @@ namespace Sokoban
 
             PositionChecker isPositionOccupied = (x, y) => IsObjectAtPosition(x, y, walls) || IsObjectAtPosition(x, y, boxes);
 
+            // 유효한 위치인지 확인
             if (IsPositionValid(playerNextX, playerNextY) && !IsObjectAtPosition(playerNextX, playerNextY, walls))
             {
                 if (IsObjectAtPosition(playerNextX, playerNextY, boxes))
@@ -279,6 +340,7 @@ namespace Sokoban
                     break;
             }
 
+            // 유효한 위치인지 확인
             foreach (var box in boxes)
             {
                 if(box.X == playerNextX && box.Y == playerNextY)
@@ -290,7 +352,7 @@ namespace Sokoban
                     }
                     else
                     {
-                        //
+                        // 랜덤 요소
                     }
                 }
             }
@@ -325,7 +387,7 @@ namespace Sokoban
             return false;
         }
 
-        bool AreAllBoxesOnGoals()
+        public bool AreAllBoxesOnGoals()
         {
             foreach (var box in boxes)
             {
@@ -344,6 +406,70 @@ namespace Sokoban
                 }
             }
             return true;
+        }
+
+        public void LoadStage(int stageNumber)
+        {
+            if (stageNumber == 2)
+            {
+                player = new Player(2, 2, "P");
+
+                boxes = new List<Box>
+                {
+                    new Box(6, 11, "B"),
+                    new Box(7, 12, "B"),
+                    new Box(8, 11, "B"),
+                    new Box(8, 10, "B")
+                };
+
+                walls = new List<Wall>
+                {
+                    new Wall(3, 6, "W"),
+                    new Wall(4, 6, "W"),
+                    new Wall(5, 7, "W"),
+                    new Wall(6, 8, "W"),
+                };
+
+                goals = new List<Goal>
+                {
+                    new Goal(13, 7, "G"),
+                    new Goal(14, 5, "G"),
+                    new Goal(15, 6, "G"),
+                    new Goal(14, 8, "G"),
+                };
+            }
+
+            else if (stageNumber == 3)
+            {
+                player = new Player(2, 2, "P");
+
+                boxes = new List<Box>
+                {
+                    new Box(5, 3, "B"),
+                    new Box(6, 3, "B"),
+                    new Box(8, 4, "B"),
+                    new Box(8, 5, "B"),
+                    new Box(6, 4, "B")
+                };
+
+                walls = new List<Wall>
+                {
+                    new Wall(5, 8, "W"),
+                    new Wall(6, 8, "W"),
+                    new Wall(7, 9, "W"),
+                    new Wall(8, 9, "W"),
+                    new Wall(11, 11, "W")
+                };
+
+                goals = new List<Goal>
+                {
+                    new Goal(8, 13, "G"),
+                    new Goal(8, 14, "G"),
+                    new Goal(9, 14, "G"),
+                    new Goal(10, 14, "G"),
+                    new Goal(11, 13, "G")
+                };
+            }
         }
     }
 }
