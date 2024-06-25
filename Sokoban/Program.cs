@@ -13,29 +13,128 @@ namespace Sokoban
 
     internal class Program
     {
-        const string playerIcon = "P";
-        static int playerX = 1, playerY = 1;
+        static void Main(string[] args)
+        {
+            Game game = new Game();
+            game.Play();
+        }
+    }
 
-        const string boxIcon = "B";
-        static int[] boxX = new int[] { 8, 9, 10 };
-        static int[] boxY = new int[] { 3, 3, 3 };
+    class Player
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+        public string Icon { get; }
 
-        const string wallIcon = "W";
-        static int[] wallX = new int[] { 13, 14, 15 };
-        static int[] wallY = new int[] { 6, 6, 6 };
+        public Player(int x, int y, string icon)
+        {
+            X = x;
+            Y = y;
+            Icon = icon;
+        }
+    }
 
-        const string goalIcon = "G";
-        static int[] goalX = new int[] { 11, 12, 13 };
-        static int[] goalY = new int[] { 8, 8, 8 };
+    class Enemy
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+        public string Icon { get; }
+
+        public Enemy(int x, int y, string icon)
+        {
+            X = x;
+            Y = y;
+            Icon = icon;
+        }
+    }
+
+    class Box
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+        public string Icon { get; }
+
+        public Box(int x, int y, string icon)
+        {
+            X = x;
+            Y = y;
+            Icon = icon;
+        }
+    }
+
+    class Wall
+    {
+        public int X { get; }
+        public int Y { get; }
+        public string Icon { get; }
+
+        public Wall(int x, int y, string icon)
+        {
+            X = x;
+            Y = y;
+            Icon = icon;
+        }
+    }
+
+    class Goal
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+        public string Icon { get; }
+
+        public Goal(int x, int y, string icon)
+        {
+            X = x;
+            Y = y;
+            Icon = icon;
+        }
+    }
+
+    class Game
+    {
+        Player player;
+        List<Enemy> enemies;
+        List<Box> boxes;
+        List<Wall> walls;
+        List<Goal> goals;
+
+        public Game()
+        {
+            InitializeGame();
+        }
+
+        void InitializeGame()
+        {
+            player = new Player(2, 2, "P");
+
+            boxes = new List<Box>
+            {
+                new Box(8, 3, "B"),
+                new Box(9, 3, "B"),
+                new Box(10, 3, "B")
+            };
+
+            walls = new List<Wall>
+            {
+                new Wall(13, 6, "W"),
+                new Wall(14, 6, "W"),
+                new Wall(15, 6, "W")
+            };
+
+            goals = new List<Goal>
+            {
+                new Goal(11, 10, "G"),
+                new Goal(12, 10, "G"),
+                new Goal(13, 10, "G")
+            };
+        }
 
         const int MIN_X = 0, MIN_Y = 1;
         const int MAX_X = 119, MAX_Y = 29;
-        
-        static int totalCoin = 0;
 
         delegate bool PositionChecker(int x, int y);
 
-        static void Main(string[] args)
+        public void Play()
         {
             InitializeConsole();
 
@@ -44,23 +143,22 @@ namespace Sokoban
                 Console.Clear();
 
                 DrawGameObjects();
-                PrintTotalCoin();
-
-                ConsoleKey key = GetKey();
-                Direction movingDirection = DecideDirection(key);
-
-                MovePlayer(ref playerX, ref playerY, movingDirection);
 
                 if (AreAllBoxesOnGoals())
                 {
                     Console.Clear();
-                    Console.Write("Game Complete");
+                    Console.Write("Game Clear");
                     break;
                 }
+
+                ConsoleKey key = GetKey();
+                Direction movingDirection = DecideDirection(key);
+
+                MovePlayer(movingDirection);
             }
         }
 
-        static void InitializeConsole()
+        void InitializeConsole()
         {
             Console.ResetColor();
             Console.CursorVisible = false;
@@ -70,38 +168,38 @@ namespace Sokoban
             Console.Clear();
         }
 
-        static void DrawGameObjects()
+        void DrawGameObjects()
         {
-            PrintObjects(wallX, wallY, wallIcon);
-            PrintObjects(goalX, goalY, goalIcon);
-            PrintObjects(boxX, boxY, boxIcon);
-            PrintObject(playerX, playerY, playerIcon);
+            PrintObject(player.X, player.Y, player.Icon);
+            foreach (var wall in walls)
+            {
+                PrintObject(wall.X, wall.Y, wall.Icon);
+            }
+            foreach (var goal in goals)
+            {
+                PrintObject(goal.X, goal.Y, goal.Icon);
+            }
+            foreach (var Box in boxes)
+            {
+                PrintObject(Box.X, Box.Y, Box.Icon);
+            }
         }
 
-        static void PrintObject(int x, int y, string icon)
+        void PrintObject(int x, int y, string icon)
         {
             Console.SetCursorPosition(x, y);
             Console.Write(icon);
         }
 
-        static void PrintObjects(int[] x, int[] y, string icon)
+        ConsoleKey GetKey()
         {
-            int count = x.Length;
-            for (int i = 0; i < count; i++)
-            {
-                PrintObject(x[i], y[i], icon);
-            }
-        }
-
-        static ConsoleKey GetKey()
-        {
-            ConsoleKeyInfo keyInfo = Console.ReadKey();
+            ConsoleKeyInfo keyInfo = Console.ReadKey(true);
             ConsoleKey key = keyInfo.Key;
 
             return key;
         }
 
-        static Direction DecideDirection(ConsoleKey key)
+        Direction DecideDirection(ConsoleKey key)
         {
             Direction movingDirection = Direction.NONE;
 
@@ -125,43 +223,43 @@ namespace Sokoban
             return movingDirection;
         }
 
-        static void MovePlayer(ref int playerCurrX, ref int playerCurrY, Direction movingDirection)
+        void MovePlayer(Direction movingDirection)
         {
-            int playerNextX = playerCurrX, playerNextY = playerCurrY;
+            int playerNextX = player.X, playerNextY = player.Y;
 
             switch (movingDirection)
             {
                 case Direction.LEFT:
-                    playerNextX = playerCurrX - 1;
+                    playerNextX = player.X - 1;
                     break;
                 case Direction.RIGHT:
-                    playerNextX = playerCurrX + 1;
+                    playerNextX = player.X + 1;
                     break;
                 case Direction.UP:
-                    playerNextY = playerCurrY - 1;
+                    playerNextY = player.Y - 1;
                     break;
                 case Direction.DOWN:
-                    playerNextY = playerCurrY + 1;
+                    playerNextY = player.Y + 1;
                     break;
             }
 
-            PositionChecker isPositionOccupied = (x, y) => IsObjectAtPosition(x, y, wallX, wallY) || IsObjectAtPosition(x, y, boxX, boxY);
+            PositionChecker isPositionOccupied = (x, y) => IsObjectAtPosition(x, y, walls) || IsObjectAtPosition(x, y, boxes);
 
-            if (IsPositionValid(playerNextX, playerNextY) && !IsObjectAtPosition(playerNextX, playerNextY, wallX, wallY))
+            if (IsPositionValid(playerNextX, playerNextY) && !IsObjectAtPosition(playerNextX, playerNextY, walls))
             {
-                if (IsObjectAtPosition(playerNextX, playerNextY, boxX, boxY))
+                if (IsObjectAtPosition(playerNextX, playerNextY, boxes))
                 {
                     MoveBox(playerNextX, playerNextY, movingDirection, isPositionOccupied);
                 }
-                if (!IsObjectAtPosition(playerNextX, playerNextY, boxX, boxY))
+                if (!IsObjectAtPosition(playerNextX, playerNextY, boxes))
                 {
-                    playerCurrX = playerNextX;
-                    playerCurrY = playerNextY;
+                    player.X = playerNextX;
+                    player.Y = playerNextY;
                 }
             }
         }
 
-        static void MoveBox(int playerNextX, int playerNextY, Direction movingDirection, PositionChecker isPositionOccupied)
+        void MoveBox(int playerNextX, int playerNextY, Direction movingDirection, PositionChecker isPositionOccupied)
         {
             int boxNextX = playerNextX, boxNextY = playerNextY;
 
@@ -181,35 +279,33 @@ namespace Sokoban
                     break;
             }
 
-            for (int i = 0; i < boxX.Length; i++)
+            foreach (var box in boxes)
             {
-                if (boxX[i] == playerNextX && boxY[i] == playerNextY)
+                if(box.X == playerNextX && box.Y == playerNextY)
                 {
                     if (IsPositionValid(boxNextX, boxNextY) && !isPositionOccupied(boxNextX, boxNextY))
                     {
-                        boxX[i] = boxNextX;
-                        boxY[i] = boxNextY;
+                        box.X = boxNextX;
+                        box.Y = boxNextY;
                     }
                     else
                     {
-                        int totalWeight = GetTotalWeight(itemTable);
-                        Item randomItem = GetRandomItem(totalWeight, itemTable);
-                        totalCoin += randomItem.Value;
+                        //
                     }
                 }
             }
         }
 
-        static bool IsPositionValid(int x, int y)
+        bool IsPositionValid(int x, int y)
         {
             return x >= MIN_X && x <= MAX_X && y >= MIN_Y && y <= MAX_Y;
         }
 
-        static bool IsObjectAtPosition(int objectX, int objectY, int[] objectPosX, int[] objectPosY)
+        bool IsObjectAtPosition(int objectX, int objectY, List<Box> boxes)
         {
-            for (int i = 0; i < objectPosX.Length; i++)
+            foreach (var box in boxes)
             {
-                if (objectX == objectPosX[i] && objectY == objectPosY[i])
+                if (objectX == box.X && objectY == box.Y)
                 {
                     return true;
                 }
@@ -217,20 +313,26 @@ namespace Sokoban
             return false;
         }
 
-        static void PrintTotalCoin()
+        bool IsObjectAtPosition(int objectX, int objectY, List<Wall> walls)
         {
-            Console.SetCursorPosition(0, 0);
-            Console.Write($"현재 코인: {totalCoin}원");
+            foreach (var wall in walls)
+            {
+                if (objectX == wall.X && objectY == wall.Y)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
-        static bool AreAllBoxesOnGoals()
+        bool AreAllBoxesOnGoals()
         {
-            for (int i = 0; i < boxX.Length; i++)
+            foreach (var box in boxes)
             {
                 bool boxOnGoal = false;
-                for (int j = 0; j < goalX.Length; j++)
+                foreach (var goal in goals)
                 {
-                    if (boxX[i] == goalX[j] && boxY[i] == goalY[j])
+                    if (box.X == goal.X && box.Y == goal.Y)
                     {
                         boxOnGoal = true;
                         break;
@@ -242,53 +344,6 @@ namespace Sokoban
                 }
             }
             return true;
-        }
-
-        class Item
-        {
-            public int Id;
-            public string Name;
-            public int Weight;
-            public int Value;
-        }
-
-        static Item[] itemTable = new Item[4]
-        {
-            new Item() { Id = 1, Name = "50원", Weight = 1, Value = 50 },
-            new Item() { Id = 2, Name = "25원", Weight = 2, Value = 25 },
-            new Item() { Id = 3, Name = "10원", Weight = 3, Value = 10 },
-            new Item() { Id = 4, Name = "5원", Weight = 4, Value = 5 },
-        };
-
-        static int GetTotalWeight(Item[] itemTable)
-        {
-            int result = 0;
-            for (int itemId = 0; itemId < itemTable.Length; ++itemId)
-            {
-                result += itemTable[itemId].Weight;
-            }
-            return result;
-        }
-
-        static Item GetRandomItem(int totalWeight, Item[] itemTable)
-        {
-            Random random = new Random();
-            int randomNumber = random.Next(1, totalWeight + 1);
-
-            Item selectedItem = null;
-            int weight = 0;
-
-            for (int itemId = 0; itemId < itemTable.Length; ++itemId)
-            {
-                weight += itemTable[itemId].Weight;
-
-                if (randomNumber <= weight)
-                {
-                    selectedItem = itemTable[itemId];
-                    break;
-                }
-            }
-            return selectedItem;
         }
     }
 }
