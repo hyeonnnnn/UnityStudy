@@ -22,18 +22,16 @@ namespace Sokoban
         List<Wall> walls;
         List<Goal> goals;
         StageManager stageManager;
-        int currStage;
-        const int finalStage = 3;
 
         public Game()
         {
-            InitializeGame();
+            stageManager = new StageManager();
+            InitializeGame(stageManager.CurrStage);
         }
 
-        void InitializeGame()
+        void InitializeGame(int stageNumber)
         {
-            StageManager stageManager = new StageManager();
-            stageManager.LoadStage("stage1.txt");
+            stageManager.LoadStage($"stage{stageNumber}.txt");
 
             player = stageManager.Player;
             boxes = stageManager.Boxes;
@@ -53,12 +51,18 @@ namespace Sokoban
             while (true)
             {
                 Console.Clear();
-                
+
                 if (AreAllBoxesOnGoals())
                 {
-                    Console.SetCursorPosition(0, 0);
-                    Console.WriteLine("Game Clear");
-                    break;
+                    stageManager.MoveNextStage();
+                    if (stageManager.IsClearGame())
+                    {
+                        Console.SetCursorPosition(0, 0);
+                        Console.WriteLine("Game Clear");
+                        break;
+                    }
+                    InitializeGame(stageManager.CurrStage);
+                    continue;
                 }
 
                 DrawGameObjects();
@@ -91,9 +95,9 @@ namespace Sokoban
             {
                 PrintObject(goal.X, goal.Y, goal.Icon);
             }
-            foreach (var Box in boxes)
+            foreach (var box in boxes)
             {
-                PrintObject(Box.X, Box.Y, Box.Icon);
+                PrintObject(box.X, box.Y, box.Icon);
             }
         }
 
@@ -255,32 +259,5 @@ namespace Sokoban
             }
             return true;
         }
-
-        /*
-        int currStage = 1;
-        static int finalStage = 3;
-        void MoveNextStage()
-        {
-            if (AreAllBoxesOnGoals())
-            {
-                currStage++;
-            }
-            
-            switch(currStage)
-            {
-                case 2:
-                    stageManager.LoadStage("stage2.txt");
-                    break;
-                case 2:
-                    stageManager.LoadStage("stage3.txt");
-                    break;
-            }
-        }
-
-        bool IsClearGame()
-        {
-            return currStage > finalStage;
-        }
-        */
     }
 }

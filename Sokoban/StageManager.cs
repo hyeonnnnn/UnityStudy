@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,7 +14,9 @@ namespace Sokoban
         public List<Wall> Walls { get; private set; }
         public List<Goal> Goals { get; private set; }
 
-        
+        public int CurrStage { get; private set; } = 1;
+        static int finalStage = 3;
+
         public StageManager()
         {
             Boxes = new List<Box>();
@@ -23,6 +26,11 @@ namespace Sokoban
 
         public void LoadStage(string filePath)
         {
+            Boxes.Clear();
+            Walls.Clear();
+            Goals.Clear();
+            Player = null;
+
             string[] lines = File.ReadAllLines(filePath);
 
             for (int y = 0; y < lines.Length; y++)
@@ -47,6 +55,16 @@ namespace Sokoban
                     }
                 }
             }
+        }
+
+        public void MoveNextStage()
+        {
+            CurrStage++;
+        }
+
+        public bool IsClearGame()
+        {
+            return CurrStage > finalStage;
         }
     }
 }
